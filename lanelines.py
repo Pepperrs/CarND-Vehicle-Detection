@@ -205,7 +205,7 @@ def calculate_radius_and_center(image, left_lane_inds, nonzerox, nonzeroy, out_i
     return left_fitx, ploty, right_fitx, left_curverad, right_curverad, center_distance
 
 
-def draw_lines_to_image(image, left_fitx, original, ploty, right_fitx):
+def draw_lines_to_image(image, left_fitx, original, ploty, right_fitx, warp_matrix_inverse):
 
     warp_zero = np.zeros_like(image).astype(np.uint8)
     color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
@@ -244,7 +244,7 @@ def write_info_to_image(image, left_curverad, right_curverad, center_distance):
     return image
 
 
-def process_image(image):
+def process_image(image, mtx, dist, warp_matrix, warp_matrix_inverse):
     original = image
 
     # Distortion Correction
@@ -264,25 +264,25 @@ def process_image(image):
         calculate_radius_and_center(image, left_lane_inds, nonzerox, nonzeroy, out_img, right_lane_inds)
 
     # draw area to image
-    image = draw_lines_to_image(image, left_fitx, original, ploty, right_fitx)
+    image = draw_lines_to_image(image, left_fitx, original, ploty, right_fitx, warp_matrix_inverse)
 
     # write curve radius and center displacement to image
     image = write_info_to_image(image, left_curverad, right_curverad, center_distance)
 
     return image
 
+def run_line_detection():
+    ret, mtx, dist, rvecs, tvecs = calibration()
+    print("Generated calibration data!")
 
-ret, mtx, dist, rvecs, tvecs = calibration()
-print("Generated calibration data!")
+    warp_matrix, warp_matrix_inverse = generate_warp_config()
 
-warp_matrix, warp_matrix_inverse = generate_warp_config()
+    test_image = mpimg.imread("test_images/test3.jpg")
+    test_image = process_image(test_image, mtx, dist, warp_matrix, warp_matrix_inverse)
+    mpimg.imsave("test_image.jpg", test_image)
 
-test_image = mpimg.imread("test_images/test3.jpg")
-test_image = process_image(test_image)
-mpimg.imsave("test_image.jpg", test_image)
-
-# video = VideoFileClip("project_video.mp4")
-# video_processed = video.fl_image(process_image)
-# video_processed.write_videofile("project_output.mp4", audio=False)
+    # video = VideoFileClip("project_video.mp4")
+    # video_processed = video.fl_image(process_image)
+    # video_processed.write_videofile("project_output.mp4", audio=False)
 
 
