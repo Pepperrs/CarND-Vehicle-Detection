@@ -43,10 +43,10 @@ def process_frame(image):
 
     # run preprocessing (distortion correction)
     # at the moment only required for lane lines
-    image = preprocess_frame(image)
+    # image = preprocess_frame(image)
 
     # run line detection
-    image = lanelines.detect(image, original, warp_matrix, warp_matrix_inverse)
+    #image = lanelines.detect(image, original, warp_matrix, warp_matrix_inverse)
 
     # run car detection
     image = cars.detect(image)
@@ -60,6 +60,7 @@ def process_frame(image):
 def main(argv):
 
     # setup()
+    cars.train()
 
     process_single_image("test_images/test3.jpg")
 
