@@ -2,14 +2,18 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import time
+from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
 from skimage.feature import hog
 import glob
 
 
 def train():
-    global feature_map, feature_labels
-    feature_map, feature_labels = train_on_images()
+    #global feature_map, feature_labels
+    feature_map, feature_labels = generate_feature_map()
+    train_feature_map(feature_map, feature_labels)
 
 
 def detect(image):
@@ -99,7 +103,7 @@ def extract_features(imgs, hog_data, cspace='RGB', spatial_size=(32, 32),
     return features
 
 
-def train_on_images():
+def generate_feature_map():
 
     # import car images
     images_cars = glob.glob('training_data/car/*/*.png')
@@ -113,7 +117,6 @@ def train_on_images():
     for notcar_image in images_notcars:
         notcars.append(notcar_image)
     hog_data = {"orient":9, "pix_per_cell": 8, "cell_per_block": 2}
-
     car_features = extract_features(cars, hog_data, cspace='RGB', spatial_size=(32, 32),
                                     hist_bins=32, hist_range=(0, 256))
     notcar_features = extract_features(notcars, hog_data, cspace='RGB', spatial_size=(32, 32),
@@ -130,3 +133,29 @@ def train_on_images():
         return scaled_X, y
     else:
         print('Your training function only returns empty feature vectors...')
+
+
+def train_feature_map(feature_map, feature_labels):
+    # Split up data into randomized training and test sets
+    rand_state = np.random.randint(0, 100)
+    X_train, X_test, y_train, y_test = train_test_split(
+        feature_map, feature_labels, test_size=0.2, random_state=rand_state)
+
+    #print('Using spatial binning of:', spatial, 'and', histbin, 'histogram bins')
+    print('Feature vector length:', len(X_train[0]))
+    # Use a linear SVC
+    svc = LinearSVC()
+    # Check the training time for the SVC
+    t = time.time()
+    svc.fit(X_train, y_train)
+    t2 = time.time()
+    print(round(t2 - t, 2), 'Seconds to train SVC...')
+    # Check the score of the SVC
+    print('Test Accuracy of SVC = ', round(svc.score(X_test, y_test), 4))
+    # Check the prediction time for a single sample
+    t = time.time()
+    n_predict = 10
+    print('My SVC predicts: ', svc.predict(X_test[0:n_predict]))
+    print('For these', n_predict, 'labels: ', y_test[0:n_predict])
+    t2 = time.time()
+    print(round(t2 - t, 5), 'Seconds to predict', n_predict, 'labels with SVC')
