@@ -196,7 +196,7 @@ def write_info_to_image(image, left_curverad, right_curverad, center_distance):
     return image
 
 
-def run_line_detection(image, original, warp_matrix, warp_matrix_inverse):
+def detect(image, original, warp_matrix, warp_matrix_inverse):
 
     # Convert to HLS and detect Lane Pixels
     image = HLS_Gradient(image)

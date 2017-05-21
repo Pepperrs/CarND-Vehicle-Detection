@@ -5,7 +5,7 @@ import matplotlib.image as mpimg
 from moviepy.editor import VideoFileClip
 
 from calibration import calibration, generate_warp_config
-from lanelines import run_line_detection
+import lanelines
 
 
 def setup():
@@ -13,6 +13,7 @@ def setup():
     global ret, mtx, dist, rvecs, tvecs
     ret, mtx, dist, rvecs, tvecs = calibration()
     print("Generated calibration data!")
+
     global warp_matrix, warp_matrix_inverse
     warp_matrix, warp_matrix_inverse = generate_warp_config()
 
@@ -41,10 +42,11 @@ def process_frame(image):
     original = image
 
     # run preprocessing (distortion correction)
+    # at the moment only required for lane lines
     image = preprocess_frame(image)
 
     # run line detection
-    image = run_line_detection(image, original, warp_matrix, warp_matrix_inverse)
+    image = lanelines.detect(image, original, warp_matrix, warp_matrix_inverse)
 
     # run car detection
     image = cars.detect(image)
@@ -57,11 +59,11 @@ def process_frame(image):
 
 def main(argv):
 
-    setup()
+    # setup()
 
     process_single_image("test_images/test3.jpg")
 
-    process_video("project_video.mp4")
+    # process_video("project_video.mp4")
 
 
 
