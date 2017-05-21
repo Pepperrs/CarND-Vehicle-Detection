@@ -1,56 +1,8 @@
 # Peter Schüllermann
 # Udacity Lane Lines Project for the CarND 2017
-from moviepy.editor import VideoFileClip
-import numpy as np
 import cv2
-import matplotlib.image as mpimg
-import glob
-
-
-def calibration():
-    images = glob.glob("camera_cal/calibration*.jpg")
-
-    imgpoints = []
-    objpoints = []
-
-    objp = np.zeros((9 * 6, 3), np.float32)
-    objp[:, :2] = np.mgrid[0:9, 0:6].T.reshape(-1, 2)  # x, y coordinates
-
-    for fname in images:
-        img = mpimg.imread(fname)
-
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-        ret, corners = cv2.findChessboardCorners(gray, (9, 6), None)
-
-        if ret == True:
-            imgpoints.append(corners)
-            objpoints.append(objp)
-
-    return cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
-
-
-def generate_warp_config():
-    # source for corner points: https://github.com/js1972
-    corners = np.float32([[253, 697], [585, 456], [700, 456], [1061, 690]])
-    new_top_left = np.array([corners[0, 0], 0])
-    new_top_right = np.array([corners[3, 0], 0])
-    offset = [50, 0]
-
-    src = np.float32([corners[0], corners[1], corners[2], corners[3]])
-    dst = np.float32([corners[0] + offset, new_top_left + offset, new_top_right - offset, corners[3] - offset])
-
-    warp_matrix = cv2.getPerspectiveTransform(src, dst)
-    warp_matrix_inverse = cv2.getPerspectiveTransform(dst, src)
-    return warp_matrix, warp_matrix_inverse
-
-
-def warp_image(image, warp_matrix):
-    img_size = (image.shape[1], image.shape[0])
-
-    warped = cv2.warpPerspective(image, warp_matrix, img_size, flags=cv2.INTER_LINEAR)
-
-    return warped
+import numpy as np
+from calibration import warp_image
 
 
 def HLS_Gradient(image):
@@ -244,11 +196,7 @@ def write_info_to_image(image, left_curverad, right_curverad, center_distance):
     return image
 
 
-def process_image(image, mtx, dist, warp_matrix, warp_matrix_inverse):
-    original = image
-
-    # Distortion Correction
-    image = cv2.undistort(image, mtx, dist, None, mtx)
+def run_line_detection(image, original, warp_matrix, warp_matrix_inverse):
 
     # Convert to HLS and detect Lane Pixels
     image = HLS_Gradient(image)
@@ -270,19 +218,3 @@ def process_image(image, mtx, dist, warp_matrix, warp_matrix_inverse):
     image = write_info_to_image(image, left_curverad, right_curverad, center_distance)
 
     return image
-
-def run_line_detection():
-    ret, mtx, dist, rvecs, tvecs = calibration()
-    print("Generated calibration data!")
-
-    warp_matrix, warp_matrix_inverse = generate_warp_config()
-
-    test_image = mpimg.imread("test_images/test3.jpg")
-    test_image = process_image(test_image, mtx, dist, warp_matrix, warp_matrix_inverse)
-    mpimg.imsave("test_image.jpg", test_image)
-
-    # video = VideoFileClip("project_video.mp4")
-    # video_processed = video.fl_image(process_image)
-    # video_processed.write_videofile("project_output.mp4", audio=False)
-
-
