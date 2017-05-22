@@ -23,7 +23,7 @@ def setup():
     hog_feat = True
     y_start_stop = [390, 720]
     x_start_stop = [None, None]
-    training_size = 500
+    training_size = 500 # set to 0 for full data
     return color_space, spatial_size, hist_bins, orient, pix_per_cell, cell_per_block, hog_channel, spatial_feat, hist_feat, hog_feat, y_start_stop, x_start_stop, training_size
 
 
@@ -36,11 +36,19 @@ def generate_feature_map():
 
     # import not-car images
     images_notcars = glob.glob('training_data/non_car/*/*.png')
+
     notcars = []
     for notcar_image in images_notcars:
         notcars.append(notcar_image)
 
+
+
     color_space, spatial_size, hist_bins, orient, pix_per_cell, cell_per_block, hog_channel, spatial_feat, hist_feat, hog_feat, y_start_stop, x_start_stop, training_size = setup()
+
+    if training_size > 0:
+        cars = cars[0:training_size]
+        notcars = notcars[0:training_size]
+
 
     car_features = extract_features(cars, orient, pix_per_cell, cell_per_block, cspace = color_space, spatial_size=spatial_size, hist_bins=hist_bins, hist_range=(0, 256))
 
