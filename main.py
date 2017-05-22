@@ -60,11 +60,12 @@ def process_frame(image):
 def main(argv):
 
     # setup()
+    cars.setup()
     cars.train()
 
     process_single_image("test_images/test3.jpg")
 
-    # process_video("project_video.mp4")
+    process_video("project_video.mp4")
 
 
 

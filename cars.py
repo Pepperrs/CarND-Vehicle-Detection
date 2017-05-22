@@ -10,6 +10,23 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
 
 
+def setup():
+    color_space = "RGB"
+    spatial_size = (32, 32)
+    hist_bins = 32
+    orient = 9
+    pix_per_cell = 8
+    cell_per_block = 2
+    hog_channel = "ALL"
+    spatial_feat = True
+    hist_feat = True
+    hog_feat = True
+    y_start_stop = [390, 720]
+    x_start_stop = [None, None]
+    training_size = 500
+    return color_space, spatial_size, hist_bins, orient, pix_per_cell, cell_per_block, hog_channel, spatial_feat, hist_feat, hog_feat, y_start_stop, x_start_stop, training_size
+
+
 def generate_feature_map():
     # import car images
     images_cars = glob.glob('training_data/car/*/*.png')
@@ -22,11 +39,12 @@ def generate_feature_map():
     notcars = []
     for notcar_image in images_notcars:
         notcars.append(notcar_image)
-    hog_data = {"orient": 9, "pix_per_cell": 8, "cell_per_block": 2}
-    car_features = extract_features(cars, hog_data, cspace='RGB', spatial_size=(32, 32),
-                                    hist_bins=32, hist_range=(0, 256))
-    notcar_features = extract_features(notcars, hog_data, cspace='RGB', spatial_size=(32, 32),
-                                       hist_bins=32, hist_range=(0, 256))
+
+    color_space, spatial_size, hist_bins, orient, pix_per_cell, cell_per_block, hog_channel, spatial_feat, hist_feat, hog_feat, y_start_stop, x_start_stop, training_size = setup()
+
+    car_features = extract_features(cars, orient, pix_per_cell, cell_per_block, cspace = color_space, spatial_size=spatial_size, hist_bins=hist_bins, hist_range=(0, 256))
+
+    notcar_features = extract_features(notcars, orient, pix_per_cell, cell_per_block, cspace = color_space, spatial_size=spatial_size, hist_bins=hist_bins, hist_range=(0, 256))
 
     if len(car_features) > 0:
         # Create an array stack of feature vectors
@@ -160,15 +178,15 @@ def single_img_features(img, color_space='RGB', spatial_size=(32, 32),
 
 # Define a function to extract features from a list of images
 # Have this function call bin_spatial() and color_hist()
-def extract_features(imgs, hog_data, cspace='RGB', spatial_size=(32, 32),
-                     hist_bins=32, hist_range=(0, 256), ):
+def extract_features(imgs, orient, pix_per_cell, cell_per_block, cspace='RGB', spatial_size=(32, 32),
+                     hist_bins=32, hist_range=(0, 256)):
     # Create a list to append feature vectors to
     features = []
 
     # Iterate through the list of images
     for file in imgs:
         # Read in each one by one
-        image = mpimg.imread(file)
+        image = mpimg.imread(file)*255
         # apply color conversion if other than 'RGB'
         if cspace != 'RGB':
             if cspace == 'HSV':
@@ -186,9 +204,7 @@ def extract_features(imgs, hog_data, cspace='RGB', spatial_size=(32, 32),
         hog_features = []
         for channel in range(feature_image.shape[2]):
             hog_features.append(get_hog_features(feature_image[:, :, channel],
-                                                 hog_data["orient"],
-                                                 hog_data["pix_per_cell"],
-                                                 hog_data["cell_per_block"],
+                                                 orient, pix_per_cell, cell_per_block,
                                                  vis=False, feature_vec=True))
         hog_features = np.ravel(hog_features)
 
@@ -298,20 +314,11 @@ def train():
 
 
 def detect(image):
-    color_space = "RGB"
-    spatial_size = (32, 32)
-    hist_bins = 32
-    orient = 9
-    pix_per_cell = 8
-    cell_per_block = 2
-    hog_channel = "ALL"
-    spatial_feat = True
-    hist_feat = True
-    hog_feat = True
 
-    y_start_stop = [390, 720]
+    color_space, spatial_size, hist_bins, orient, pix_per_cell, cell_per_block, hog_channel, spatial_feat, hist_feat, hog_feat, y_start_stop, x_start_stop, training_size = setup()
 
-    windows = slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop,
+
+    windows = slide_window(image, x_start_stop=x_start_stop, y_start_stop=y_start_stop,
                            xy_window=(96, 96), xy_overlap=(0.5, 0.5))
 
     hot_windows = search_windows(image, windows, svc, X_scaler, color_space=color_space,
