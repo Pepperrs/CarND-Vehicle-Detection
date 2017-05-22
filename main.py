@@ -18,10 +18,10 @@ def setup():
     warp_matrix, warp_matrix_inverse = generate_warp_config()
 
 
-def process_single_image(image_location):
+def process_single_image(image_location, i = 1):
     test_image = mpimg.imread(image_location)
     test_image = process_frame(test_image)
-    mpimg.imsave("test_image.jpg", test_image)
+    mpimg.imsave("test_image" + str(i) + ".jpg", test_image)
 
 
 def process_video(video_location):
@@ -63,7 +63,8 @@ def main(argv):
     cars.setup()
     cars.train()
 
-    process_single_image("test_images/test3.jpg")
+    for i in range(1, 6):
+        process_single_image("test_images/test" + str(i) + ".jpg", i)
 
     #process_video("project_video.mp4")
 
