@@ -1,17 +1,16 @@
-import numpy as np
-import cv2
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import time
-from sklearn.svm import LinearSVC
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
-from skimage.feature import hog
 import glob
+import time
+
+import cv2
+import matplotlib.image as mpimg
+import numpy as np
+from skimage.feature import hog
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import LinearSVC
 
 
 def generate_feature_map():
-
     # import car images
     images_cars = glob.glob('training_data/car/*/*.png')
     cars = []
@@ -23,7 +22,7 @@ def generate_feature_map():
     notcars = []
     for notcar_image in images_notcars:
         notcars.append(notcar_image)
-    hog_data = {"orient":9, "pix_per_cell": 8, "cell_per_block": 2}
+    hog_data = {"orient": 9, "pix_per_cell": 8, "cell_per_block": 2}
     car_features = extract_features(cars, hog_data, cspace='RGB', spatial_size=(32, 32),
                                     hist_bins=32, hist_range=(0, 256))
     notcar_features = extract_features(notcars, hog_data, cspace='RGB', spatial_size=(32, 32),
@@ -49,7 +48,7 @@ def train_feature_map(feature_map, feature_labels):
     X_train, X_test, y_train, y_test = train_test_split(
         feature_map, feature_labels, test_size=0.2, random_state=rand_state)
 
-    #print('Using spatial binning of:', spatial, 'and', histbin, 'histogram bins')
+    # print('Using spatial binning of:', spatial, 'and', histbin, 'histogram bins')
     print('Feature vector length:', len(X_train[0]))
     # Use a linear SVC
     svc = LinearSVC()
@@ -92,7 +91,7 @@ def color_hist(img, nbins=32, bins_range=(0, 256)):
 
 # Define a function to return HOG features and visualization
 def get_hog_features(img, orient, pix_per_cell, cell_per_block,
-                        vis=False, feature_vec=True):
+                     vis=False, feature_vec=True):
     # Call with two outputs if vis==True
     if vis == True:
         features, hog_image = hog(img, orientations=orient, pixels_per_cell=(pix_per_cell, pix_per_cell),
@@ -106,12 +105,14 @@ def get_hog_features(img, orient, pix_per_cell, cell_per_block,
                        visualise=vis, feature_vector=feature_vec)
         return features
 
-    # Define a function to extract features from a single image window
-    # This function is very similar to extract_features()
-    # just for a single image rather than list of images
+        # Define a function to extract features from a single image window
+        # This function is very similar to extract_features()
+        # just for a single image rather than list of images
+
+
 def single_img_features(img, color_space='RGB', spatial_size=(32, 32),
                         hist_bins=32, orient=9,
-                        pix_per_cell=8, cell_per_block=2, hog_channel=0,
+                        pix_per_cell=8, cell_per_block=2, hog_channel="ALL",
                         spatial_feat=True, hist_feat=True, hog_feat=True):
     # 1) Define an empty list to receive features
     img_features = []
@@ -160,7 +161,7 @@ def single_img_features(img, color_space='RGB', spatial_size=(32, 32),
 # Define a function to extract features from a list of images
 # Have this function call bin_spatial() and color_hist()
 def extract_features(imgs, hog_data, cspace='RGB', spatial_size=(32, 32),
-                     hist_bins=32, hist_range=(0, 256),):
+                     hist_bins=32, hist_range=(0, 256), ):
     # Create a list to append feature vectors to
     features = []
 
@@ -184,11 +185,11 @@ def extract_features(imgs, hog_data, cspace='RGB', spatial_size=(32, 32),
         # Call get_hog_features() with vis=False, feature_vec=True
         hog_features = []
         for channel in range(feature_image.shape[2]):
-            hog_features.append(get_hog_features(feature_image[:,:,channel],
+            hog_features.append(get_hog_features(feature_image[:, :, channel],
                                                  hog_data["orient"],
                                                  hog_data["pix_per_cell"],
                                                  hog_data["cell_per_block"],
-                                vis=False, feature_vec=True))
+                                                 vis=False, feature_vec=True))
         hog_features = np.ravel(hog_features)
 
         # Apply bin_spatial() to get spatial color features
@@ -204,43 +205,43 @@ def extract_features(imgs, hog_data, cspace='RGB', spatial_size=(32, 32),
 # Define a function you will pass an image
 # and the list of windows to be searched (output of slide_windows())
 def search_windows(img, windows, clf, scaler, color_space='RGB',
-                    spatial_size=(32, 32), hist_bins=32,
-                    hist_range=(0, 256), orient=9,
-                    pix_per_cell=8, cell_per_block=2,
-                    hog_channel=0, spatial_feat=True,
-                    hist_feat=True, hog_feat=True):
-
-    #1) Create an empty list to receive positive detection windows
+                   spatial_size=(32, 32), hist_bins=32,
+                   hist_range=(0, 256), orient=9,
+                   pix_per_cell=8, cell_per_block=2,
+                   hog_channel="ALL", spatial_feat=True,
+                   hist_feat=True, hog_feat=True):
+    # 1) Create an empty list to receive positive detection windows
     on_windows = []
-    #2) Iterate over all windows in the list
+    # 2) Iterate over all windows in the list
     for window in windows:
-        #3) Extract the test window from original image
+        # 3) Extract the test window from original image
         test_img = cv2.resize(img[window[0][1]:window[1][1], window[0][0]:window[1][0]], (64, 64))
-        #4) Extract features for that window using single_img_features()
+        # 4) Extract features for that window using single_img_features()
         features = single_img_features(test_img, color_space=color_space,
-                            spatial_size=spatial_size, hist_bins=hist_bins,
-                            orient=orient, pix_per_cell=pix_per_cell,
-                            cell_per_block=cell_per_block,
-                            hog_channel=hog_channel, spatial_feat=spatial_feat,
-                            hist_feat=hist_feat, hog_feat=hog_feat)
+                                       spatial_size=spatial_size, hist_bins=hist_bins,
+                                       orient=orient, pix_per_cell=pix_per_cell,
+                                       cell_per_block=cell_per_block,
+                                       hog_channel=hog_channel, spatial_feat=spatial_feat,
+                                       hist_feat=hist_feat, hog_feat=hog_feat)
 
-        #5) Scale extracted features to be fed to classifier
+        # 5) Scale extracted features to be fed to classifier
         test_features = scaler.transform(np.array(features).reshape(1, -1))
-        #6) Predict using your classifier
+        # 6) Predict using your classifier
         prediction = clf.predict(test_features)
-        #7) If positive (prediction == 1) then save the window
+        # 7) If positive (prediction == 1) then save the window
         if prediction == 1:
             on_windows.append(window)
-    #8) Return windows for positive detections
+    # 8) Return windows for positive detections
     return on_windows
+
 
 # Define a function that takes an image,
 # start and stop positions in both x and y,
 # window size (x and y dimensions),
 # and overlap fraction (for both x and y)
 def slide_window(img, x_start_stop=[None, None], y_start_stop=[None, None],
-                    xy_window=(64, 64), xy_overlap=(0.5, 0.5)):
-# If x and/or y start/stop positions not defined, set to image size
+                 xy_window=(64, 64), xy_overlap=(0.5, 0.5)):
+    # If x and/or y start/stop positions not defined, set to image size
     if x_start_stop[0] == None:
         x_start_stop[0] = 0
     if x_start_stop[1] == None:
@@ -253,13 +254,13 @@ def slide_window(img, x_start_stop=[None, None], y_start_stop=[None, None],
     xspan = x_start_stop[1] - x_start_stop[0]
     yspan = y_start_stop[1] - y_start_stop[0]
     # Compute the number of pixels per step in x/y
-    nx_pix_per_step = np.int(xy_window[0]*(1 - xy_overlap[0]))
-    ny_pix_per_step = np.int(xy_window[1]*(1 - xy_overlap[1]))
+    nx_pix_per_step = np.int(xy_window[0] * (1 - xy_overlap[0]))
+    ny_pix_per_step = np.int(xy_window[1] * (1 - xy_overlap[1]))
     # Compute the number of windows in x/y
-    nx_buffer = np.int(xy_window[0]*(xy_overlap[0]))
-    ny_buffer = np.int(xy_window[1]*(xy_overlap[1]))
-    nx_windows = np.int((xspan-nx_buffer)/nx_pix_per_step)
-    ny_windows = np.int((yspan-ny_buffer)/ny_pix_per_step)
+    nx_buffer = np.int(xy_window[0] * (xy_overlap[0]))
+    ny_buffer = np.int(xy_window[1] * (xy_overlap[1]))
+    nx_windows = np.int((xspan - nx_buffer) / nx_pix_per_step)
+    ny_windows = np.int((yspan - ny_buffer) / ny_pix_per_step)
     # Initialize a list to append window positions to
     window_list = []
     # Loop through finding x and y window positions
@@ -269,9 +270,9 @@ def slide_window(img, x_start_stop=[None, None], y_start_stop=[None, None],
     for ys in range(ny_windows):
         for xs in range(nx_windows):
             # Calculate window position
-            startx = xs*nx_pix_per_step + x_start_stop[0]
+            startx = xs * nx_pix_per_step + x_start_stop[0]
             endx = startx + xy_window[0]
-            starty = ys*ny_pix_per_step + y_start_stop[0]
+            starty = ys * ny_pix_per_step + y_start_stop[0]
             endy = starty + xy_window[1]
             # Append window position to list
             window_list.append(((startx, starty), (endx, endy)))
@@ -303,12 +304,12 @@ def detect(image):
     orient = 9
     pix_per_cell = 8
     cell_per_block = 2
-    hog_channel = 0
+    hog_channel = "ALL"
     spatial_feat = True
     hist_feat = True
     hog_feat = True
 
-    y_start_stop = (400, 740)
+    y_start_stop = [390, 720]
 
     windows = slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop,
                            xy_window=(96, 96), xy_overlap=(0.5, 0.5))
