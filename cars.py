@@ -203,7 +203,7 @@ def extract_features(imgs, orient, pix_per_cell, cell_per_block, cspace='RGB', s
     # Iterate through the list of images
     for file in imgs:
         # Read in each one by one
-        image = mpimg.imread(file)*255
+        image = mpimg.imread(file)
         # apply color conversion if other than 'RGB'
         if cspace != 'RGB':
             if cspace == 'HSV':
@@ -327,6 +327,8 @@ def draw_boxes(img, bboxes, color=(0, 0, 255), thick=6):
 def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins):
     draw_img = np.copy(img)
     img = img.astype(np.float32) / 255
+
+    #todo: fix that not the correct borders are drawn
 
     img_tosearch = img[ystart:ystop, :, :]
     ctrans_tosearch = convert_color(img_tosearch, conv='RGB2YCrCb')
