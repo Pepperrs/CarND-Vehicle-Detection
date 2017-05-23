@@ -12,7 +12,7 @@ from scipy.ndimage.measurements import label
 
 
 def setup():
-    color_space = "HLS" #"HLS"
+    color_space = "HLS" #RGB, HSV, LUV, YUV, HLS
     spatial_size = (32, 32)
     hist_bins = 32
     orient = 7 # 9
@@ -31,7 +31,8 @@ def setup():
 def generate_feature_map():
     # import car images
     images_cars = glob.glob('training_data/car/KITTI_extracted/*.png')
-    #images_cars.append(glob.glob('training_data/car/GTI*/*.png'))
+    #images_cars = glob.glob('training_data/car/GTI*/*.png')
+    #images_cars = glob.glob('training_data/car/*/*.png')
     cars = []
     for car_image in images_cars:
         cars.append(car_image)
@@ -204,18 +205,23 @@ def extract_features(imgs, orient, pix_per_cell, cell_per_block, cspace='RGB', s
     # Iterate through the list of images
     for file in imgs:
         # Read in each one by one
-        image = mpimg.imread(file) #/255
+        image = mpimg.imread(file)
         # apply color conversion if other than 'RGB'
         if cspace != 'RGB':
             if cspace == 'HSV':
+                image = mpimg.imread(file)
                 feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
             elif cspace == 'LUV':
+                image = mpimg.imread(file) /255
                 feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2LUV)
             elif cspace == 'HLS':
+                image = mpimg.imread(file) * 1
                 feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
             elif cspace == 'YUV':
+                image = mpimg.imread(file) /255
                 feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
         else:
+            image = mpimg.imread(file)
             feature_image = np.copy(image)
 
         # Call get_hog_features() with vis=False, feature_vec=True
@@ -479,7 +485,7 @@ def detect(image):
     heat = find_cars(image, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, heat)
 
 
-    heat = apply_threshold(heat, 2)
+    heat = apply_threshold(heat, 1)
 
     # Find final boxes from heatmap using label function
     labels = label(heat)
