@@ -24,7 +24,7 @@ def setup():
     hog_feat = True
     y_start_stop = [400, 660]
     x_start_stop = [None, None]
-    training_size = 500  # set to 0 for full data
+    training_size = 0  # set to 0 for full data
     return color_space, spatial_size, hist_bins, orient, pix_per_cell, cell_per_block, hog_channel, spatial_feat, hist_feat, hog_feat, y_start_stop, x_start_stop, training_size
 
 
@@ -286,7 +286,7 @@ def apply_threshold(heatmap, threshold):
     heatmap[heatmap <= threshold] = 0
     # Return thresholded map
     zeroimage = np.zeros_like(heatmap[:, :]).astype(np.float)
-    zeroimage[400:720,600:1280] = heatmap[400:720,600:1280]
+    zeroimage[400:720,660:1280] = heatmap[400:720,660:1280]
     return zeroimage
 
 
@@ -357,7 +357,7 @@ def detect(image):
     scale = 3.0
     heat = find_cars(image, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, heat)
 
-    heat = apply_threshold(heat, 2)
+    heat = apply_threshold(heat, 1)
 
     # Find final boxes from heatmap using label function
     labels = label(heat)
