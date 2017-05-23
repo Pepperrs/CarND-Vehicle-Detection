@@ -12,11 +12,11 @@ from scipy.ndimage.measurements import label
 
 
 def setup():
-    color_space = "RGB"
+    color_space = "HLS" #"HLS"
     spatial_size = (32, 32)
     hist_bins = 32
-    orient = 9
-    pix_per_cell = 8
+    orient = 7 # 9
+    pix_per_cell = 8 # 16
     cell_per_block = 2
     hog_channel = "ALL"
     spatial_feat = True
@@ -43,14 +43,11 @@ def generate_feature_map():
     for notcar_image in images_notcars:
         notcars.append(notcar_image)
 
-
-
     color_space, spatial_size, hist_bins, orient, pix_per_cell, cell_per_block, hog_channel, spatial_feat, hist_feat, hog_feat, y_start_stop, x_start_stop, training_size = setup()
 
     if training_size > 0:
         cars = cars[0:training_size]
         notcars = notcars[0:training_size]
-
 
     car_features = extract_features(cars, orient, pix_per_cell, cell_per_block, cspace = color_space, spatial_size=spatial_size, hist_bins=hist_bins, hist_range=(0, 256))
 
@@ -207,7 +204,7 @@ def extract_features(imgs, orient, pix_per_cell, cell_per_block, cspace='RGB', s
     # Iterate through the list of images
     for file in imgs:
         # Read in each one by one
-        image = mpimg.imread(file)
+        image = mpimg.imread(file) #/255
         # apply color conversion if other than 'RGB'
         if cspace != 'RGB':
             if cspace == 'HSV':
@@ -329,11 +326,9 @@ def draw_boxes(img, bboxes, color=(0, 0, 255), thick=6):
 
 
 def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, heat):
-    draw_img = np.copy(img)
+    # draw_img = np.copy(img)
     img = img.astype(np.float32) / 255
 
-    #todo: fix that not the correct borders are drawn
-    #todo: SET TO HSV
 
     img_tosearch = img[ystart:ystop, :, :]
     ctrans_tosearch = convert_color(img_tosearch, conv='RGB2YCrCb')
@@ -475,16 +470,16 @@ def detect(image):
 
     ystart = 400
     ystop = 596
-    scale = 3.0
+    scale = 3.5
     heat = find_cars(image, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, heat)
 
     ystart = 464
     ystop = 660
-    scale = 3.0
+    scale = 3.5
     heat = find_cars(image, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, heat)
 
 
-    heat = apply_threshold(heat, 1)
+    heat = apply_threshold(heat, 2)
 
     # Find final boxes from heatmap using label function
     labels = label(heat)
