@@ -68,7 +68,7 @@ def main(argv):
     for i in range(1, 6):
         process_single_image("test_images/test" + str(i) + ".jpg", i)
 
-    #process_video("project_video.mp4")
+    process_video("test_video.mp4")
 
 
 
