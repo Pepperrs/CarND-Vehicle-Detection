@@ -12,7 +12,7 @@ from sklearn.svm import LinearSVC
 
 
 def setup():
-    color_space = "HLS"  # RGB, HSV, LUV, YUV, HLS
+    color_space = "YUV"  # RGB, HSV, LUV, YUV, HLS
     spatial_size = (32, 32)
     hist_bins = 32
     orient = 7  # 9
@@ -74,7 +74,7 @@ def train_feature_map(feature_map, feature_labels):
     # Split up data into randomized training and test sets
     rand_state = np.random.randint(0, 100)
     X_train, X_test, y_train, y_test = train_test_split(
-        feature_map, feature_labels, test_size=0.1, random_state=rand_state)
+        feature_map, feature_labels, test_size=0.2, random_state=rand_state)
 
     # print('Using spatial binning of:', spatial, 'and', histbin, 'histogram bins')
     print('Feature vector length:', len(X_train[0]))
@@ -258,7 +258,7 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
                np.hstack((spatial_features, hist_features, hog_features)).reshape(1, -1))
             test_prediction = svc.predict(test_features)
 
-            if test_prediction == 1:# or True:
+            if test_prediction == 1: # or True:
                 xbox_left = np.int(xleft * scale)
                 ytop_draw = np.int(ytop * scale)
                 win_draw = np.int(window * scale)
@@ -285,7 +285,9 @@ def apply_threshold(heatmap, threshold):
     # Zero out pixels below the threshold
     heatmap[heatmap <= threshold] = 0
     # Return thresholded map
-    return heatmap
+    zeroimage = np.zeros_like(heatmap[:, :]).astype(np.float)
+    zeroimage[400:720,600:1280] = heatmap[400:720,600:1280]
+    return zeroimage
 
 
 def draw_labeled_bboxes(img, labels):
@@ -355,7 +357,7 @@ def detect(image):
     scale = 3.0
     heat = find_cars(image, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, heat)
 
-    heat = apply_threshold(heat, 1)
+    heat = apply_threshold(heat, 2)
 
     # Find final boxes from heatmap using label function
     labels = label(heat)
