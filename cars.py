@@ -8,6 +8,7 @@ from skimage.feature import hog
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
+from scipy.ndimage.measurements import label
 
 
 def setup():
@@ -29,7 +30,8 @@ def setup():
 
 def generate_feature_map():
     # import car images
-    images_cars = glob.glob('training_data/car/*/*.png')
+    images_cars = glob.glob('training_data/car/KITTI_extracted/*.png')
+    #images_cars.append(glob.glob('training_data/car/GTI*/*.png'))
     cars = []
     for car_image in images_cars:
         cars.append(car_image)
@@ -72,7 +74,7 @@ def train_feature_map(feature_map, feature_labels):
     # Split up data into randomized training and test sets
     rand_state = np.random.randint(0, 100)
     X_train, X_test, y_train, y_test = train_test_split(
-        feature_map, feature_labels, test_size=0.2, random_state=rand_state)
+        feature_map, feature_labels, test_size=0.1, random_state=rand_state)
 
     # print('Using spatial binning of:', spatial, 'and', histbin, 'histogram bins')
     print('Feature vector length:', len(X_train[0]))
@@ -102,6 +104,8 @@ def convert_color(img, conv='RGB2YCrCb'):
         return cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)
     if conv == 'RGB2LUV':
         return cv2.cvtColor(img, cv2.COLOR_RGB2LUV)
+    if conv == 'RGB2HSV':
+        return cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
 
 
 # Define a function to compute binned color features
@@ -324,14 +328,16 @@ def draw_boxes(img, bboxes, color=(0, 0, 255), thick=6):
     return draw_img
 
 
-def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins):
+def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, heat):
     draw_img = np.copy(img)
     img = img.astype(np.float32) / 255
 
     #todo: fix that not the correct borders are drawn
+    #todo: SET TO HSV
 
     img_tosearch = img[ystart:ystop, :, :]
     ctrans_tosearch = convert_color(img_tosearch, conv='RGB2YCrCb')
+
     if scale != 1:
         imshape = ctrans_tosearch.shape
         ctrans_tosearch = cv2.resize(ctrans_tosearch, (np.int(imshape[1] / scale), np.int(imshape[0] / scale)))
@@ -356,6 +362,9 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
     hog1 = get_hog_features(ch1, orient, pix_per_cell, cell_per_block, feature_vec=False)
     hog2 = get_hog_features(ch2, orient, pix_per_cell, cell_per_block, feature_vec=False)
     hog3 = get_hog_features(ch3, orient, pix_per_cell, cell_per_block, feature_vec=False)
+
+
+    bbox_list = []
 
     for xb in range(nxsteps):
         for yb in range(nysteps):
@@ -384,13 +393,53 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
             test_prediction = svc.predict(test_features)
 
             if test_prediction == 1:
+
+                #mpimg.imsave("training_data/non_car/Hard_Negative/" + ++main.image_counter + ".png")
                 xbox_left = np.int(xleft * scale)
                 ytop_draw = np.int(ytop * scale)
                 win_draw = np.int(window * scale)
-                cv2.rectangle(draw_img, (xbox_left, ytop_draw + ystart),
-                              (xbox_left + win_draw, ytop_draw + win_draw + ystart), (0, 0, 255), 6)
+                #cv2.rectangle(draw_img, (xbox_left, ytop_draw + ystart),
+                #              (xbox_left + win_draw, ytop_draw + win_draw + ystart), (0, 0, 255), 6)
+                bbox_list.append(
+                    ((xbox_left, ytop_draw + ystart), (xbox_left + win_draw, ytop_draw + win_draw + ystart)))
 
-    return draw_img
+    # return draw_img
+    heat = add_heat(heat, bbox_list)
+    return heat
+
+
+def add_heat(heatmap, bbox_list):
+    # Iterate through list of bboxes
+    for box in bbox_list:
+        # Add += 1 for all pixels inside each bbox
+        # Assuming each "box" takes the form ((x1, y1), (x2, y2))
+        heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
+
+    # Return updated heatmap
+    return heatmap  # Iterate through list of bboxes
+
+
+def apply_threshold(heatmap, threshold):
+    # Zero out pixels below the threshold
+    heatmap[heatmap <= threshold] = 0
+    # Return thresholded map
+    return heatmap
+
+
+def draw_labeled_bboxes(img, labels):
+    # Iterate through all detected cars
+    for car_number in range(1, labels[1] + 1):
+        # Find pixels with each car_number label value
+        nonzero = (labels[0] == car_number).nonzero()
+        # Identify x and y values of those pixels
+        nonzeroy = np.array(nonzero[0])
+        nonzerox = np.array(nonzero[1])
+        # Define a bounding box based on min/max x and y
+        bbox = ((np.min(nonzerox), np.min(nonzeroy)), (np.max(nonzerox), np.max(nonzeroy)))
+        # Draw the box on the image
+        cv2.rectangle(img, bbox[0], bbox[1], (0, 0, 255), 6)
+    # Return the image
+    return img
 
 def train():
     global feature_map, feature_labels, svc
@@ -402,10 +451,45 @@ def detect(image):
 
     color_space, spatial_size, hist_bins, orient, pix_per_cell, cell_per_block, hog_channel, spatial_feat, hist_feat, hog_feat, y_start_stop, x_start_stop, training_size = setup()
 
+    heat = np.zeros_like(image[:, :, 0]).astype(np.float)
+
     ystart = 400
-    ystop = 656
+    ystop = 654
     scale = 1.5
-    image = find_cars(image, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)
+    heat = find_cars(image, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, heat)
+
+    ystart = 400
+    ystop = 496
+    scale = 1.5
+    heat = find_cars(image, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, heat)
+
+    ystart = 400
+    ystop = 528
+    scale = 2.0
+    heat = find_cars(image, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, heat)
+
+    ystart = 432
+    ystop = 560
+    scale = 2.0
+    heat = find_cars(image, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, heat)
+
+    ystart = 400
+    ystop = 596
+    scale = 3.0
+    heat = find_cars(image, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, heat)
+
+    ystart = 464
+    ystop = 660
+    scale = 3.0
+    heat = find_cars(image, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, heat)
+
+
+    heat = apply_threshold(heat, 1)
+
+    # Find final boxes from heatmap using label function
+    labels = label(heat)
+    image = draw_labeled_bboxes(np.copy(image), labels)
+
 
     # windows = slide_window(image, x_start_stop=x_start_stop, y_start_stop=y_start_stop,
     #                        xy_window=(96, 96), xy_overlap=(0.5, 0.5))
