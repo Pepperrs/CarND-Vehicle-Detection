@@ -16,7 +16,7 @@ def setup():
     spatial_size = (32, 32)
     hist_bins = 32
     orient = 7  # 9
-    pix_per_cell = 8  # 16
+    pix_per_cell = 16  # 16
     cell_per_block = 2
     hog_channel = "ALL"
     spatial_feat = True
@@ -201,7 +201,7 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
               heat):
     # draw_img = np.copy(img)
     img = img.astype(np.float32) / 255
-    ystop += 16
+    #ystop += int(16*scale)
     img_tosearch = img[ystart:ystop, :, :]
     ctrans_tosearch = convert_color(img_tosearch, conv='RGB2YCrCb')
 
@@ -213,14 +213,12 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
     ch2 = ctrans_tosearch[:, :, 1]
     ch3 = ctrans_tosearch[:, :, 2]
 
-    # Define blocks and steps as above
-    nxblocks = (ch1.shape[1] // pix_per_cell) - cell_per_block + 1
-    nyblocks = (ch1.shape[0] // pix_per_cell) - cell_per_block + 1
+    nxblocks = (ch1.shape[1] // pix_per_cell) + 1  # -1
+    nyblocks = (ch1.shape[0] // pix_per_cell) + 1  # -1
     nfeat_per_block = orient * cell_per_block ** 2
-
     # 64 was the orginal sampling rate, with 8 cells and 8 pix per cell
     window = 64
-    nblocks_per_window = (window // pix_per_cell) - cell_per_block + 1
+    nblocks_per_window = (window // pix_per_cell) - 1
     cells_per_step = 2  # Instead of overlap, define how many cells to step
     nxsteps = (nxblocks - nblocks_per_window) // cells_per_step
     nysteps = (nyblocks - nblocks_per_window) // cells_per_step
@@ -260,13 +258,10 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
                np.hstack((spatial_features, hist_features, hog_features)).reshape(1, -1))
             test_prediction = svc.predict(test_features)
 
-            if test_prediction == 1 or True:
-                # mpimg.imsave("training_data/non_car/Hard_Negative/" + ++main.image_counter + ".png")
+            if test_prediction == 1:# or True:
                 xbox_left = np.int(xleft * scale)
                 ytop_draw = np.int(ytop * scale)
                 win_draw = np.int(window * scale)
-                # cv2.rectangle(draw_img, (xbox_left, ytop_draw + ystart),
-                #              (xbox_left + win_draw, ytop_draw + win_draw + ystart), (0, 0, 255), 6)
                 bbox_list.append(
                     ((xbox_left, ytop_draw + ystart), (xbox_left + win_draw, ytop_draw + win_draw + ystart)))
 
@@ -352,15 +347,15 @@ def detect(image):
 
     ystart = 400
     ystop = 596
-    scale = 3.5
+    scale = 3.0
     heat = find_cars(image, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, heat)
 
     ystart = 464
     ystop = 660
-    scale = 3.5
+    scale = 3.0
     heat = find_cars(image, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, heat)
 
-    heat = apply_threshold(heat, 0)
+    heat = apply_threshold(heat, 1)
 
     # Find final boxes from heatmap using label function
     labels = label(heat)
