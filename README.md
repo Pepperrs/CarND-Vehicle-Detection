@@ -26,9 +26,9 @@ The goals / steps of this project are the following:
 #### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.
 You're reading it!
 
-###Histogram of Oriented Gradients (HOG)
+### Histogram of Oriented Gradients (HOG)
 
-####1. Explain how (and identify where in your code) you extracted HOG features from the training images.
+#### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
 The code for this step is contained in cars.py in the function `generate_feature_map` which for the HOG classifier uses the function `get_hog_features`.
 
@@ -87,11 +87,11 @@ Original image:
 
 ![alt text][image7]
 
-Heatmap
+Heatmap:
 
 ![alt text][image6]
 
-Resulting boxes
+Resulting boxes:
 
 ![alt text][image4]
 
