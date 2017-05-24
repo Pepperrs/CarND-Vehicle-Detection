@@ -17,8 +17,6 @@ The goals / steps of this project are the following:
 [image5]: ./writeup/heatmap.jpg
 [image6]: ./writeup/heatmap_cars.jpg
 [image7]: ./writeup/test1.jpg
-[image9]: ./writeup/noncar.jpg
-[image8]: ./writeup/noncar.jpg
 [video1]: ./project_video.mp4
 
 -----
@@ -85,15 +83,15 @@ I recorded the positions of positive detections in each frame of the video.  Fro
 
 Here's an example result showing the heatmap from an image and the bounding boxes then overlaid on image:
 
-** original image: *+
+Original image:
 
 ![alt text][image7]
 
-** heatmap **
+Heatmap
 
 ![alt text][image6]
 
-** resulting boxes **
+Resulting boxes
 
 ![alt text][image4]
 
