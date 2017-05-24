@@ -12,13 +12,13 @@ The goals / steps of this project are the following:
 [//]: # (Image References)
 [image1]: ./writeup/car.png
 [image2]: ./writeup/noncar.png
-[image3]: ./writeup/boxes.png
-[image4]: ./writeup/noncar.png
-[image5]: ./writeup/noncar.png
-[image6]: ./writeup/noncar.png
-[image7]: ./writeup/noncar.png
-[image8]: ./writeup/noncar.png
-[image9]: ./writeup/noncar.png
+[image3]: ./writeup/boxes.jpg
+[image4]: ./writeup/boxes_around_cars.jpg
+[image5]: ./writeup/heatmap.jpg
+[image6]: ./writeup/heatmap_cars.jpg
+[image7]: ./writeup/test1.jpg
+[image9]: ./writeup/noncar.jpg
+[image8]: ./writeup/noncar.jpg
 [video1]: ./project_video.mp4
 
 -----
@@ -55,7 +55,7 @@ I tried various combinations of parameters and these seemed to give the most sta
 
 #### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features and color features.
 
-I trained a linear SVM on histogram, spatial bins and HOG features using `sklearn's` `LinearSVC`
+In the function `train_feature_map` I trained a linear SVM on histogram, spatial bins and HOG features using `sklearn's` `LinearSVC`.
 
 ### Sliding Window Search
 
@@ -68,7 +68,7 @@ This means that vehicles far away are only looked for close to the horizon, howe
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
+Ultimately I searched on four scales using YUV 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
 
 ![alt text][image4]
 ---
@@ -76,7 +76,7 @@ Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spat
 ### Video Implementation
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
-Here's a [link to my video result](./project_video.mp4)
+Here's a [link to my video result](./writeup/project_Final.mp4)
 
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
