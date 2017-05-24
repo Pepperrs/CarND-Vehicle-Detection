@@ -24,7 +24,7 @@ def setup():
     hog_feat = True
     y_start_stop = [400, 660]
     x_start_stop = [None, None]
-    training_size = 500  # set to 0 for full data
+    training_size = 0  # set to 0 for full data
     return color_space, spatial_size, hist_bins, orient, pix_per_cell, cell_per_block, hog_channel, spatial_feat, hist_feat, hog_feat, y_start_stop, x_start_stop, training_size
 
 
@@ -251,7 +251,7 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
                np.hstack((spatial_features, hist_features, hog_features)).reshape(1, -1))
             test_prediction = svc.predict(test_features)
 
-            if test_prediction == 1 or True:
+            if test_prediction == 1: # or True:
                 xbox_left = np.int(xleft * scale)
                 ytop_draw = np.int(ytop * scale)
                 win_draw = np.int(window * scale)
@@ -305,7 +305,7 @@ def train():
     svc = train_feature_map(feature_map, feature_labels)
 
 
-def detect(image):
+def detect(image, draw_here):
     color_space, spatial_size, hist_bins, orient, pix_per_cell, cell_per_block, hog_channel, spatial_feat, hist_feat, hog_feat, y_start_stop, x_start_stop, training_size = setup()
 
     heat = np.zeros_like(image[:, :, 0]).astype(np.float)
@@ -354,7 +354,7 @@ def detect(image):
 
     # Find final boxes from heatmap using label function
     labels = label(heat)
-    image = draw_labeled_bboxes(np.copy(image), labels)
+    image = draw_labeled_bboxes(np.copy(draw_here), labels)
 
 
     return image
