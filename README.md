@@ -38,7 +38,7 @@ I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an 
 ![alt text][image2]
 
 The function `extract_features` then checks each image of both sets for HOG, spatial and histogram features, which are then scaled using `sklearn's` `StandardScaler`.
-I ended up with the following parameters
+I ended up with the following parameters, since they provided the best results
 * `color_space = "YUV"`
 * `spatial_size = (32, 32)`
 * `hist_bins = 32`
@@ -66,7 +66,7 @@ This means that vehicles far away are only looked for close to the horizon, howe
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-Ultimately I searched on four scales using YUV 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
+Ultimately I searched on four scales using YUV 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result. I chose to apply heatmap labelung to reduce false positives. Here are some example images:
 
 ![alt text][image4]
 ---
