@@ -104,5 +104,4 @@ Here's an example result showing the heatmap from an image and the bounding boxe
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.
-
+The detection algorithm still does not work good enough to be used in an actual car. It fails under changes in light, for example when entering a tunnel or when driving at night. Also it is dependent on the dataset including all cars it will ever face. If the classifier would encounter a van or a truck, it would not detect it propperly. Also it could be mislead by bumperstickers or mirrorsm as it has no sanity check function.
