@@ -24,7 +24,7 @@ def setup():
     hog_feat = True
     y_start_stop = [400, 660]
     x_start_stop = [None, None]
-    training_size = 0  # set to 0 for full data
+    training_size = 500  # set to 0 for full data
     return color_space, spatial_size, hist_bins, orient, pix_per_cell, cell_per_block, hog_channel, spatial_feat, hist_feat, hog_feat, y_start_stop, x_start_stop, training_size
 
 
@@ -144,9 +144,6 @@ def get_hog_features(img, orient, pix_per_cell, cell_per_block,
                        visualise=vis, feature_vector=feature_vec)
         return features
 
-        # Define a function to extract features from a single image window
-        # This function is very similar to extract_features()
-        # just for a single image rather than list of images
 
 
 # Define a function to extract features from a list of images
@@ -201,7 +198,6 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
               heat):
     # draw_img = np.copy(img)
     img = img.astype(np.float32) / 255
-    #ystop += int(16*scale)
     img_tosearch = img[ystart:ystop, :, :]
     ctrans_tosearch = convert_color(img_tosearch, conv='RGB2YCrCb')
 
@@ -251,14 +247,11 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
             hist_features = color_hist(subimg, nbins=hist_bins)
 
             # Scale features and make a prediction
-            # test_features = X_scaler.transform(
-            #     np.hstack((hog_features)).reshape(1, -1))
-            # test_features = X_scaler.transform(np.hstack((shape_feat, hist_feat)).reshape(1, -1))
             test_features = X_scaler.transform(
                np.hstack((spatial_features, hist_features, hog_features)).reshape(1, -1))
             test_prediction = svc.predict(test_features)
 
-            if test_prediction == 1: # or True:
+            if test_prediction == 1 or True:
                 xbox_left = np.int(xleft * scale)
                 ytop_draw = np.int(ytop * scale)
                 win_draw = np.int(window * scale)
@@ -363,16 +356,5 @@ def detect(image):
     labels = label(heat)
     image = draw_labeled_bboxes(np.copy(image), labels)
 
-    # windows = slide_window(image, x_start_stop=x_start_stop, y_start_stop=y_start_stop,
-    #                        xy_window=(96, 96), xy_overlap=(0.5, 0.5))
-    #
-    # hot_windows = search_windows(image, windows, svc, X_scaler, color_space=color_space,
-    #                              spatial_size=spatial_size, hist_bins=hist_bins,
-    #                              orient=orient, pix_per_cell=pix_per_cell,
-    #                              cell_per_block=cell_per_block,
-    #                              hog_channel=hog_channel, spatial_feat=spatial_feat,
-    #                              hist_feat=hist_feat, hog_feat=hog_feat)
-    #
-    # image = draw_boxes(image, hot_windows, color=(0, 0, 255), thick=6)
 
     return image

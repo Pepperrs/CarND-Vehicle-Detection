@@ -60,18 +60,16 @@ def process_frame(image):
 def main(argv):
 
     # setup()
-    cars.setup()
     cars.train()
 
+    #process_video("project_video.mp4")
 
 
-    for i in range(1, 6):
-        process_single_image("test_images/test" + str(i) + ".jpg", i)
 
-    #process_video("test_video.mp4")
+    for i in range(1, 2):
+         process_single_image("test_images/test" + str(i) + ".jpg", i)
 
-    process_video("project_video.mp4")
-
+    # process_video("test_video.mp4")
 
 if __name__ == "__main__":
     main(sys.argv)
